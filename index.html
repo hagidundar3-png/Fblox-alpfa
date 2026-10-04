@@ -1,0 +1,126 @@
+const $=s=>document.querySelector(s);
+const state=JSON.parse(localStorage.getItem("fmax_state")||"null")||{
+ name:"F",fp:"∞",inventory:["🎮","Siyah Mini Karakter"],friends:[],spins:2,ownedRoles:["Vampir","Kütük Şerif"],
+ dailyClaim:true,screen:"home",game:null,role:null,alive:true,isAdmin:true
+};
+
+function save(){localStorage.setItem("fmax_state",JSON.stringify(state))}
+function toast(t){let x=document.createElement("div");x.className="toast";x.textContent=t;document.body.append(x);setTimeout(()=>x.remove(),2200)}
+
+// Çizdiğin FBLOX Yan Menülü Arayüz Şablonu
+function nav(){
+ return `<header class="top-bar">
+  <div class="left-section">
+    <div class="hamburger">≡</div>
+    <div class="logo">FBLOX <span class="alpha">(alfa)</span></div>
+    <div class="avatar-list">
+      <div class="avatar-circle add">+</div>
+      <div class="avatar-circle"></div>
+      <div class="avatar-circle"></div>
+      <div class="avatar-circle"></div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="fp-box">FP ${state.fp}<br><small>(not bu admin hesabı)</small></div>
+    <button class="side-btn" data-go="shop">magza</button>
+    <button class="side-btn" data-go="avatar">avt düzenleyici</button>
+  </div>
+</header>`
+}
+
+function shell(content){$("#app").innerHTML=`<div class="fblox-app">${nav()}<main class="content-area">${content}</main></div>`;bind()}
+
+function bind(){
+ document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{state.screen=b.dataset.go;render()});
+ document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>actions(b.dataset.action));
+}
+
+function render(){
+ if(state.screen==="kim") return renderKim();
+ if(state.screen==="shop") return renderShop();
+ if(state.screen==="avatar") return renderAvatar();
+ renderHome();
+}
+
+// Çizimdeki Ana Sayfa (Fight VS & KİM Oyunları)
+function renderHome(){
+ shell(`
+ <div class="game-cards-container">
+  <div class="game-card" data-action="soon">
+    <div class="card-thumb">Fight</div>
+    <div class="card-title">VS</div>
+  </div>
+  <div class="game-card active" data-action="openKim">
+    <div class="card-thumb red-icon">♦</div>
+    <div class="card-title">KİM</div>
+  </div>
+ </div>
+ `)
+}
+
+// Çizimdeki Avatar Düzenleyicisi Sayfası
+function renderAvatar(){
+ shell(`
+ <div class="avatar-editor-page">
+  <div class="avt-header">avt düzenleyici</div>
+  <div class="character-preview">
+    <div class="mini-black-character">
+      <!-- Çizdiğin Yıldızlı Siyah Karakter -->
+      <div class="ears"></div>
+      <div class="face"><span>\ /</span></div>
+      <div class="star-body">★</div>
+    </div>
+  </div>
+  <div class="items-divider"></div>
+  <div class="items-title">EŞYALAR</div>
+  <div class="items-grid">
+    <div class="item-slot active">Siyah Mini</div>
+    <div class="item-slot">Neon Şapka</div>
+    <div class="item-slot">Kanat</div>
+  </div>
+ </div>
+ `)
+}
+
+function renderShop(){
+ shell(`
+ <div class="shop-page">
+  <h2>magza</h2>
+  <p>FP Bakiyesi: ${state.fp}</p>
+  <div class="shop-list">
+    <button class="side-btn" data-action="buyRole:Vampir">Vampir Efekti Al</button>
+    <button class="side-btn" data-action="buyRole:Kütük">Kütük Şerif Al</button>
+  </div>
+  <br>
+  <button class="side-btn" data-go="home">← Ana Sayfaya Dön</button>
+ </div>
+ `)
+}
+
+function renderKim(){
+ shell(`
+ <div class="kim-lobby">
+  <h2>KİM — OYUN LOBİSİ</h2>
+  <p>Rolün: <strong>${state.role || "Belirlenmedi"}</strong></p>
+  <button class="side-btn" data-action="start">Tur Başlat</button>
+  <button class="side-btn" data-go="home">Çıkış Yap</button>
+ </div>
+ `)
+}
+
+function startGame(){
+ const roles=["Masum","Şerif","Katil","Vampir"];
+ state.role = roles[Math.floor(Math.random()*roles.length)];
+ save();
+ toast("Rolün: " + state.role);
+ renderKim();
+}
+
+function actions(a){
+ if(a==="openKim"){state.screen="kim";save();render()}
+ else if(a==="start") startGame()
+ else if(a==="soon") toast("Fight VS oyunu yapım aşamasında!")
+ else if(a.startsWith("buyRole:")){toast("Eşya envantere eklendi!")}
+}
+
+render();
